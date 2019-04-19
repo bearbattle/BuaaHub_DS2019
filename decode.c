@@ -1,30 +1,46 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-char key[110] = "completevictory";
-char Open[1100], Encrypt[1100];
-int t;
-
-char g(char x)
+typedef struct Node
 {
-    return (x & 1) == 1 ? (x % 26 - 1 + 'a') : (x % 26 + 1 + 'a');
+    char date[20];
+    char Open[1024];
+    char Encrypt[1024];
+} node;
+
+char key[110];
+char key0[110];
+char gg[30];
+
+node message[1007];
+char Encrypt[1100], Open[1100];
+int cmp(const void *a, const void *b)
+{
+    node p, q;
+    p = *(node *)a;
+    q = *(node *)b;
+    return strcmp(p.date, q.date);
 }
+
+char g(char x) { return gg[(int)x - 'a']; }
 
 char f(char src, char k)
 {
-    return (src + k - 2 * 'a') % 26 + 'a';
+    char res = (src + tolower(k) - 2 * 'a') % 26 + 'a';
+    //printf("f: %c -> %c\t", src, res);
+    return res;
 }
 
 char f1(char src, char k)
 {
-    return (src - k + 52) % 26 + 'a';
+    char res = (src - k + 52) % 26 + 'a';
+    //printf("f1: %c -> %c\n", src, res);
+    return res;
 }
 
-void ResetKey()
-{
-    strcpy(key, "completevictory");
-}
+void ResetKey() { strcpy(key, key0); }
 
 void ChangeKey()
 {
@@ -41,22 +57,45 @@ void ChangeKey()
 int main()
 {
     int i;
-    int len = strlen(key);
-    while (1)
+    int flag = 0;
+    int n;
+    int len;
+    int Cnt;
+    scanf("%d\n", &n);
+    gets(key0);
+    gets(gg);
+    //printf("get Reflector:%s\n", gg);
+    len = strlen(key0);
+    for (Cnt = 0; Cnt < n; Cnt++)
     {
+        scanf("%s%s", message[Cnt].date, message[Cnt].Open);
         ResetKey();
         memset(Encrypt, 0, sizeof(Encrypt));
         memset(Open, 0, sizeof(Open));
-        gets(Open);
+        strcpy(Open, message[Cnt].Open);
+        //printf("DEBUG Message: Key:%s, Origin:%s\n", key, Open);
         for (i = 0; Open[i] != '\0'; i++)
         {
-            if (i > 0 || i % len == 0)
+            flag = 0;
+            if (i > 0 && i % len == 0)
             {
                 ChangeKey();
+                //printf("Key rotated.\n");
             }
-            Encrypt[i] = f1(g(f(Open[i], key[i % len])), key[i % len]);
+            if (isupper(Open[i]))
+                flag = 1;
+            Encrypt[i] = f1(g(f(tolower(Open[i]), tolower(key[i % len]))), tolower(key[i % len]));
+            if (flag)
+            {
+                Encrypt[i] = toupper(Encrypt[i]);
+            }
         }
-        puts(Encrypt);
+        strcpy(message[Cnt].Encrypt, Encrypt);
+    }
+    qsort(message, n, sizeof(message[0]), cmp);
+    for (Cnt = 0; Cnt < n; Cnt++)
+    {
+        printf("%s %s\n", message[Cnt].date, message[Cnt].Encrypt);
     }
     return 0;
 }
