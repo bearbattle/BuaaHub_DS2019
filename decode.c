@@ -35,7 +35,9 @@ void ChangeKey()
         key[i] = key[i - 1];
     key[0] = tmp;
 }
+
 int fucker = 0;
+
 int main()
 {
     int flag = 0;
